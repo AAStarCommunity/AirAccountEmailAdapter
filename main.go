@@ -8,5 +8,12 @@ import (
 func main() {
 
 	c := conf.Get()
-	infra.Dial(c.MyEmail.Host, c.MyEmail.TlsPort, c.MyEmail.User, c.MyEmail.Password)
+
+	if conn, err := infra.Dial(c.MyEmail.Host, c.MyEmail.TlsPort, c.MyEmail.User, c.MyEmail.Password); err != nil {
+		panic(err)
+	} else {
+		defer conn.Quit()
+
+		infra.Retrive(conn)
+	}
 }
