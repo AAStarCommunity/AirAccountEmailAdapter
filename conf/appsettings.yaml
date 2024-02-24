@@ -1,0 +1,6 @@
+MyEmail:
+  Host: <my email pop3 server>
+  Tls: true
+  TlsPort: 995
+  User: <MASK>
+  Password: <MASK>
