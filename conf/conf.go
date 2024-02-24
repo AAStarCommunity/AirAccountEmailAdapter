@@ -3,12 +3,17 @@ package conf
 import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 )
 
 var once sync.Once
 
 type Conf struct {
+	AAGateway struct {
+		Host string
+	}
 	Mail struct {
 		Host     string
 		Tls      bool
@@ -21,20 +26,79 @@ type Conf struct {
 var conf *Conf
 
 // Get 读取配置
-// 默认从配置文件取，如果配置文件中的db节点内容为空，则从环境变量取
-// 如果配置文件不存在，则db从环境变量取，其他值使用默认值
+// 优先使用环境变量，如果为空，则使用对应的appsettings.*.yaml
 func Get() *Conf {
 	once.Do(func() {
 		if conf == nil {
+			aaGatewayHost := os.Getenv("aagateway_host")
+			mailHost := os.Getenv("mail__host")
+			mailTls := os.Getenv("mail__tls")
+			mailPortStr := os.Getenv("mail__port")
+			var mailPort int64 = 995
+			var err error
+			if mailPort, err = strconv.ParseInt(mailPortStr, 0, 0); err != nil {
+				mailPort = 995
+			}
+			mailUser := os.Getenv("mail__user")
+			mailPassword := os.Getenv("mail__password")
+
 			filePath := getConfFilePath()
-			conf = getConfiguration(filePath)
+			confFile := getConfiguration(filePath)
+
+			conf = &Conf{
+				AAGateway: struct{ Host string }{
+					Host: func() string {
+						if aaGatewayHost == "" {
+							return confFile.AAGateway.Host
+						}
+						return aaGatewayHost
+					}(),
+				},
+				Mail: struct {
+					Host     string
+					Tls      bool
+					Port     int
+					User     string
+					Password string
+				}{
+					Host: func() string {
+						if mailHost == "" {
+							return confFile.Mail.Host
+						}
+						return mailHost
+					}(),
+					Tls: func() bool {
+						if mailTls == "" {
+							return confFile.Mail.Tls
+						}
+						return strings.EqualFold("true", mailTls)
+					}(),
+					Port: func() int {
+						if mailPortStr == "" {
+							return confFile.Mail.Port
+						}
+						return int(mailPort)
+					}(),
+					User: func() string {
+						if mailUser == "" {
+							return confFile.Mail.User
+						}
+						return mailUser
+					}(),
+					Password: func() string {
+						if mailPassword == "" {
+							return confFile.Mail.Password
+						}
+						return mailPassword
+					}(),
+				},
+			}
 		}
 	})
 	return conf
 }
 
 // getConfiguration 读取配置
-// 优先从配置文件读取，如果数据库相关配置为空，则从环境变量读取
 func getConfiguration(filePath *string) *Conf {
 	if file, err := os.ReadFile(*filePath); err != nil {
 		panic("conf lost")

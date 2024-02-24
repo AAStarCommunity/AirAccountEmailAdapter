@@ -25,6 +25,8 @@ func TestRFC(t *testing.T) {
 	assert.Equal(t, chn3, msg3)
 
 	src4 := "=?utf-8?b?5Lit5L+h6ZO26KGM5L+h55So5Y2h5Lit5b+D56Wd5oKo55Sf5pel5b+r5LmQ?= =?utf-8?b?77yB?="
-	msg4, _ := decodeRFC2047String(src4)
-	println(msg4)
+	msg4, err4 := decodeRFC2047String(src4)
+	ch4 := "中信银行信用卡中心祝您生日快乐！"
+	assert.NoError(t, err4)
+	assert.Equal(t, ch4, msg4)
 }
