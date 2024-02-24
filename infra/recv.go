@@ -1,33 +1,40 @@
 package infra
 
 import (
-	"fmt"
+	"bytes"
+	"github.com/emersion/go-message"
 	"github.com/knadh/go-pop3"
+	"github.com/toorop/go-dkim"
 )
 
-func Retrieve(conn *pop3.Conn) error {
+func Retrieve(conn *pop3.Conn, proc func(sub *string)) error {
 
-	if count, size, err := conn.Stat(); err != nil {
+	msgs, err := conn.List(0)
+	if err != nil {
 		return err
-	} else {
-		fmt.Println("total messages=", count, "size=", size)
+	}
 
-		// Pull the list of all message IDs and their sizes.
-		msgs, _ := conn.List(0)
-		for _, m := range msgs {
-			fmt.Println("id=", m.ID, "size=", m.Size)
-		}
-
-		// Pull all messages on the server. Message IDs go from 1 to N.
-		for id := 1; id <= count; id++ {
-			m, _ := conn.Retr(id)
-
-			subject := m.Header.Get("subject")
-			sub, _ := decodeRFC2047String(subject)
-			fmt.Println(id, "=", sub)
-
+	for _, m := range msgs {
+		if msg, err := conn.Retr(m.ID); err == nil {
+			if verifyDkim(msg) {
+				subject := msg.Header.Get("subject")
+				if sub, err := decodeRFC2047String(subject); err == nil {
+					proc(&sub)
+				}
+			}
 		}
 	}
 
 	return nil
+}
+
+func verifyDkim(msg *message.Entity) bool {
+	buffer := bytes.NewBuffer(nil)
+	if msg.WriteTo(buffer) == nil {
+		b := buffer.Bytes()
+		if status, err := dkim.Verify(&b); err == nil {
+			return status == dkim.SUCCESS || status == dkim.TESTINGSUCCESS
+		}
+	}
+	return false
 }

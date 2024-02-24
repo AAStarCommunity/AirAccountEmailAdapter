@@ -11,10 +11,10 @@ import (
 
 func decodeRFC2047String(str string) (string, error) {
 
-	re := regexp.MustCompile("\\s?=\\?([\\w\\-]+)\\?([A-Z])\\?([\\w+/=]+={0,2})\\?=")
+	re := regexp.MustCompile("\\s?=\\?([\\w\\-]+)\\?([A-Za-z])\\?([\\w+/=]+={0,2})\\?=")
 
-	replaceFunc := func(match string, submatches []string) string {
-		s, err := decodeRFC2047stringOne(match, submatches[1], submatches[2], submatches[3])
+	replaceFunc := func(match string, subMatches []string) string {
+		s, err := decodeRFC2047stringOne(match, subMatches[1], subMatches[2], subMatches[3])
 		if err != nil {
 			return ""
 		}
