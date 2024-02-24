@@ -1,6 +1,8 @@
-MyEmail:
-  Host: <my email pop3 server>
-  Tls: true
-  TlsPort: 995
-  User: <MASK>
-  Password: <MASK>
+aagateway:
+  host: https://aagateway.onrender.com #指令钱包服务地址
+mail:
+  host: <my email pop3 server>
+  tls: true
+  port: 995
+  user: <MASK>
+  password: <MASK>
