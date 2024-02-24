@@ -9,10 +9,10 @@ import (
 var once sync.Once
 
 type Conf struct {
-	MyEmail struct {
+	Mail struct {
 		Host     string
 		Tls      bool
-		TlsPort  int
+		Port     int
 		User     string
 		Password string
 	}

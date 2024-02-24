@@ -19,7 +19,7 @@ func Retrieve(conn *pop3.Conn, proc func(sub *string)) error {
 			if verifyDkim(msg) {
 				subject := msg.Header.Get("subject")
 				if sub, err := decodeRFC2047String(subject); err == nil {
-					proc(&sub)
+					go proc(&sub)
 				}
 			}
 		}
