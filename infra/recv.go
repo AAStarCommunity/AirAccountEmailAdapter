@@ -5,7 +5,7 @@ import (
 	"github.com/knadh/go-pop3"
 )
 
-func Retrive(conn *pop3.Conn) error {
+func Retrieve(conn *pop3.Conn) error {
 
 	if count, size, err := conn.Stat(); err != nil {
 		return err

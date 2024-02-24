@@ -2,8 +2,8 @@ package infra
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/totoval/framework/helpers/log"
 )
 
 const DB_FILE = "mails.db"
@@ -32,7 +32,7 @@ func init() {
 	db, err := sql.Open("sqlite3", DB_FILE)
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	defer db.Close()
 
@@ -49,7 +49,6 @@ func init() {
 	);`
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-
 }

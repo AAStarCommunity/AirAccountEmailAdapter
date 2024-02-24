@@ -14,6 +14,6 @@ func main() {
 	} else {
 		defer conn.Quit()
 
-		infra.Retrive(conn)
+		infra.Retrieve(conn)
 	}
 }
