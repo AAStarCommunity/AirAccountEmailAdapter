@@ -3,6 +3,7 @@ package main
 import (
 	"AirAccountEmailAdapter/conf"
 	"AirAccountEmailAdapter/email"
+	"AirAccountEmailAdapter/email/db"
 	"AirAccountEmailAdapter/gateway"
 	"AirAccountEmailAdapter/infra"
 	"github.com/knadh/go-pop3"
@@ -25,7 +26,17 @@ func Quartz(c *conf.Conf) {
 
 		_ = infra.Retrieve(conn, func(str *string) {
 			if op := email.OpParser(str); op != nil {
-				ch <- op
+				fp := email.Fingerprint(op)
+				if err := db.Save(&db.Mail{
+					Sender:      op.From,
+					Receiver:    op.To,
+					Subject:     op.Message,
+					Unread:      false,
+					Fingerprint: fp,
+					LogAt:       time.Now(),
+				}); err == nil {
+					ch <- op
+				}
 			}
 		})
 	}

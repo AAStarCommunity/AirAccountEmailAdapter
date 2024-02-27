@@ -8,7 +8,12 @@ import (
 
 type PolicyType int
 
+func Fingerprint(op *pkg.Op) string {
+	return "TODO"
+}
+
 // OpParser get instructions from *op string
+// msg represents subject of the email
 func OpParser(msg *string) *pkg.Op {
 
 	var action pkg.OpActionType
