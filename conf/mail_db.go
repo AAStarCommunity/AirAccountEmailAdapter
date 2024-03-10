@@ -39,6 +39,9 @@ func GetDB() *gorm.DB {
 		log.Fatal("unknown database type")
 	}
 
+	if db != nil && Environment.IsDevelopment() {
+		db = db.Debug()
+	}
 	return db
 }
 

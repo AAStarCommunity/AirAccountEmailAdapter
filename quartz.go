@@ -10,6 +10,14 @@ import (
 	"time"
 )
 
+var mailId = 0
+
+func init() {
+	db := conf.GetDB()
+
+	db.Model(&repository.Mail{}).Select("MAX(mailId)").Scan(&mailId)
+}
+
 func Quartz(c *conf.Conf) {
 	timer := time.NewTimer(time.Second * 5)
 
@@ -24,11 +32,13 @@ func Quartz(c *conf.Conf) {
 
 		ch := gateway.NewMailOp()
 
-		_ = infra.Retrieve(conn, func(str *string) {
-			if op := email.OpParser(str); op != nil {
+		mailId, _ = infra.Retrieve(conn, func(basis *infra.MailBasis) {
+			if op := email.OpParser(basis); op != nil {
 				fp := email.Fingerprint(op)
-				if err := repository.Save(&repository.Mail{
+				if err = repository.Save(&repository.Mail{
+					MailId:      basis.MailId,
 					Sender:      op.From,
+					SendAt:      op.Timestamp,
 					Receiver:    op.To,
 					Subject:     op.Message,
 					Unread:      false,
@@ -37,6 +47,12 @@ func Quartz(c *conf.Conf) {
 					ch <- op
 				}
 			}
-		})
+		}, func() int {
+			if mailId == 0 {
+				return 0
+			} else {
+				return mailId + 1
+			}
+		}())
 	}
 }
