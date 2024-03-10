@@ -5,9 +5,16 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
+	"os"
 )
 
 func GetDB() *gorm.DB {
+	if "1" == os.Getenv("UnitTestEnv") {
+		db, _ := getInMemoryDbClient()
+		db = db.Debug()
+		return db
+	}
+
 	c := Get()
 
 	var db *gorm.DB
@@ -33,4 +40,13 @@ func GetDB() *gorm.DB {
 	}
 
 	return db
+}
+
+// getInMemoryDbClient used for unit tests ONLY
+func getInMemoryDbClient() (*gorm.DB, error) {
+	if client, err := gorm.Open(sqlite.Open("file::memory:?cache=private"), &gorm.Config{}); err != nil {
+		return nil, err
+	} else {
+		return client, nil
+	}
 }

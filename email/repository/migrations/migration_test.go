@@ -53,31 +53,11 @@ func TestMigrate(t *testing.T) {
 	initTestData()
 	Migrate(nil)
 
-	if testing.Short() {
-		assert.Equal(t, 1, sortedUp[0])
-		assert.Equal(t, 2, sortedUp[1])
-	}
+	assert.Equal(t, 1, sortedUp[0])
+	assert.Equal(t, 2, sortedUp[1])
 }
 
 func TestRollback(t *testing.T) {
-	var db *gorm.DB
-
-	if testing.Short() {
-		initTestData()
-	} else {
-		db = conf.GetDB()
-	}
-
-	Rollback(db)
-
-	if testing.Short() {
-		assert.Equal(t, 2, sortedDown[0])
-		assert.Equal(t, 1, sortedDown[1])
-	}
-}
-
-func TestAutoMigrate(t *testing.T) {
-	var db *gorm.DB
 	if err := os.Setenv("UnitTestEnv", "1"); err != nil {
 		t.Skip("skipped due to CI")
 	} else {
@@ -86,7 +66,25 @@ func TestAutoMigrate(t *testing.T) {
 		}()
 	}
 
-	db = conf.GetDB()
+	initTestData()
+	db := conf.GetDB()
+
+	Rollback(db)
+
+	assert.Equal(t, 2, sortedDown[0])
+	assert.Equal(t, 1, sortedDown[1])
+}
+
+func TestAutoMigrate(t *testing.T) {
+	if err := os.Setenv("UnitTestEnv", "1"); err != nil {
+		t.Skip("skipped due to CI")
+	} else {
+		defer func() {
+			_ = os.Unsetenv("UnitTestEnv")
+		}()
+	}
+
+	db := conf.GetDB()
 
 	m1 := &Migration20240310{}
 
