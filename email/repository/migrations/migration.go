@@ -13,7 +13,7 @@ type Migration interface {
 var migrations []Migration
 
 func init() {
-	// 迁移对象必需按从旧到新的顺序添加
+	// ascending order
 	migrations = []Migration{
 		&Migration20240310{},
 	}
@@ -30,7 +30,7 @@ func AutoMigrate() {
 func Migrate(db *gorm.DB) {
 
 	for i := 0; i < len(migrations); i++ {
-		migrations[i].Up(db)
+		_ = migrations[i].Up(db)
 	}
 }
 
@@ -38,6 +38,6 @@ func Migrate(db *gorm.DB) {
 func Rollback(db *gorm.DB) {
 
 	for i := len(migrations) - 1; i >= 0; i-- {
-		migrations[i].Down(db)
+		_ = migrations[i].Down(db)
 	}
 }

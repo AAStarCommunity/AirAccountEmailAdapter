@@ -1,6 +1,4 @@
-package db
-
-const DB_FILE = "mails.db"
+package repository
 
 // MailInbox represents the recv and verify emails which ready / already process to gateway
 func MailInbox() []*Mail {
