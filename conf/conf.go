@@ -10,6 +10,18 @@ import (
 
 var once sync.Once
 
+type SupportDbType string
+
+type MailDb struct {
+	Type       SupportDbType
+	Connection string
+}
+
+const (
+	Sqlite SupportDbType = "sqlite"
+	PgSql  SupportDbType = "pgsql"
+)
+
 type Conf struct {
 	AAGateway struct {
 		Host string
@@ -20,6 +32,7 @@ type Conf struct {
 		Port     int
 		User     string
 		Password string
+		Db       MailDb
 	}
 }
 
@@ -42,6 +55,9 @@ func Get() *Conf {
 			mailUser := os.Getenv("mail__user")
 			mailPassword := os.Getenv("mail__password")
 
+			mailDbType := SupportDbType(os.Getenv("mail__db__type"))
+			mailDbConnection := os.Getenv("mail__db__connection")
+
 			filePath := getConfFilePath()
 			confFile := getConfiguration(filePath)
 
@@ -60,6 +76,7 @@ func Get() *Conf {
 					Port     int
 					User     string
 					Password string
+					Db       MailDb
 				}{
 					Host: func() string {
 						if mailHost == "" {
@@ -90,6 +107,20 @@ func Get() *Conf {
 							return confFile.Mail.Password
 						}
 						return mailPassword
+					}(),
+					Db: func() MailDb {
+						dbType := mailDbType
+						dbConn := mailDbConnection
+						if dbType == "" {
+							dbType = confFile.Mail.Db.Type
+						}
+						if dbConn == "" {
+							dbConn = confFile.Mail.Db.Connection
+						}
+						return MailDb{
+							Type:       dbType,
+							Connection: dbConn,
+						}
 					}(),
 				},
 			}

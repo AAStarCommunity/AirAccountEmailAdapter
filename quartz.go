@@ -3,11 +3,20 @@ package main
 import (
 	"AirAccountEmailAdapter/conf"
 	"AirAccountEmailAdapter/email"
+	"AirAccountEmailAdapter/email/repository"
 	"AirAccountEmailAdapter/gateway"
 	"AirAccountEmailAdapter/infra"
 	"github.com/knadh/go-pop3"
 	"time"
 )
+
+var mailId = 0
+
+func init() {
+	db := conf.GetDB()
+
+	db.Model(&repository.Mail{}).Select("MAX(mailId)").Scan(&mailId)
+}
 
 func Quartz(c *conf.Conf) {
 	timer := time.NewTimer(time.Second * 5)
@@ -23,10 +32,27 @@ func Quartz(c *conf.Conf) {
 
 		ch := gateway.NewMailOp()
 
-		_ = infra.Retrieve(conn, func(str *string) {
-			if op := email.OpParser(str); op != nil {
-				ch <- op
+		mailId, _ = infra.Retrieve(conn, func(basis *infra.MailBasis) {
+			if op := email.OpParser(basis); op != nil {
+				fp := email.Fingerprint(op)
+				if err = repository.Save(&repository.Mail{
+					MailId:      basis.MailId,
+					Sender:      op.From,
+					SendAt:      op.Timestamp,
+					Receiver:    op.To,
+					Subject:     op.Message,
+					Unread:      false,
+					Fingerprint: fp,
+				}); err == nil {
+					ch <- op
+				}
 			}
-		})
+		}, func() int {
+			if mailId == 0 {
+				return 0
+			} else {
+				return mailId + 1
+			}
+		}())
 	}
 }
