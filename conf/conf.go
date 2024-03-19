@@ -32,6 +32,7 @@ type Conf struct {
 		Port     int
 		User     string
 		Password string
+		Replier  string
 		Db       MailDb
 	}
 }
@@ -54,6 +55,7 @@ func Get() *Conf {
 			}
 			mailUser := os.Getenv("mail__user")
 			mailPassword := os.Getenv("mail__password")
+			replier := os.Getenv("mail__replier")
 
 			mailDbType := SupportDbType(os.Getenv("mail__db__type"))
 			mailDbConnection := os.Getenv("mail__db__connection")
@@ -76,6 +78,7 @@ func Get() *Conf {
 					Port     int
 					User     string
 					Password string
+					Replier  string
 					Db       MailDb
 				}{
 					Host: func() string {
@@ -107,6 +110,12 @@ func Get() *Conf {
 							return confFile.Mail.Password
 						}
 						return mailPassword
+					}(),
+					Replier: func() string {
+						if replier == "" {
+							return confFile.Mail.Replier
+						}
+						return replier
 					}(),
 					Db: func() MailDb {
 						dbType := mailDbType
