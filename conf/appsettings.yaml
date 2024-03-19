@@ -6,6 +6,7 @@ mail:
   port: 995
   user: <MASK>
   password: <MASK>
+  replier: "NO-Reply"
   db:
     type: pgsql # supports: pgsql or sqlite
     connection: <DB Connection String>
