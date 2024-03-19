@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -19,7 +20,6 @@ func Fingerprint(op *pkg.Op) string {
 }
 
 // OpParser get instructions from *op string
-// msg represents basis of the email
 func OpParser(mailBasis *infra.MailBasis) *pkg.Op {
 	var action pkg.OpActionType
 	if strings.EqualFold(mailBasis.Subject, string(pkg.BindWallet)) {
@@ -27,14 +27,23 @@ func OpParser(mailBasis *infra.MailBasis) *pkg.Op {
 	} else if strings.EqualFold(mailBasis.Subject, string(pkg.QueryBalance)) {
 		action = pkg.QueryBalance
 	} else {
-		// TODO: the rest action
+		re := regexp.MustCompile(pkg.TransferTo)
+		rawMsg := strings.ToLower(mailBasis.Subject)
+		if matches := re.FindStringSubmatch(rawMsg); len(matches) == 3 {
+			action = pkg.Transfer
+		}
 	}
-	return &pkg.Op{
-		Action:    action,
-		Timestamp: mailBasis.Date,
-		From:      mailBasis.From,
-		To:        mailBasis.To,
-		Message:   mailBasis.Subject,
-		OpId:      mailBasis.MsgId,
+
+	if action == "" {
+		return nil
+	} else {
+		return &pkg.Op{
+			Action:    action,
+			Timestamp: mailBasis.Date,
+			From:      mailBasis.From,
+			To:        mailBasis.To,
+			Message:   mailBasis.Subject,
+			OpId:      mailBasis.MsgId,
+		}
 	}
 }

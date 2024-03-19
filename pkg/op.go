@@ -5,9 +5,10 @@ import "time"
 type OpActionType string
 
 const (
-	BindWallet   OpActionType = "create account"                    // 绑定钱包指令
-	QueryBalance OpActionType = "query"                             // 查询钱包余额
-	TransferTo   OpActionType = `transfer\s+([\d\.]+)\s+to\s+(\d+)` // 转账
+	BindWallet   OpActionType = "create account" // 绑定钱包指令
+	QueryBalance OpActionType = "query"          // 查询钱包余额
+	Transfer     OpActionType = "transfer"
+	TransferTo   string       = `transfer\s+([\d\.]+)\s+to\s+(\d+)` // 转账
 )
 
 type Op struct {

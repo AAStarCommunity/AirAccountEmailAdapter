@@ -10,8 +10,13 @@ func recv() {
 		data := <-ch
 		fmt.Println("recv:", data.Message)
 
-		if data.Action == pkg.BindWallet {
+		switch data.Action {
+		case pkg.BindWallet:
 			go bind(data)
+		case pkg.QueryBalance:
+			go query(data)
+		case pkg.Transfer:
+			go transfer(data)
 		}
 	}
 }
